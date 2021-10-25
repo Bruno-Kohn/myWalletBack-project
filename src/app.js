@@ -21,11 +21,18 @@ app.post("/register", async (req, res) => {
   });
 
   const value = schema.validate(req.body);
-  //console.log(value);
   const { name, email, password, passwordConfirmation } = req.body;
 
   if (password !== passwordConfirmation) {
     return res.sendStatus(400);
+  }
+
+  const result = await connection.query(`  
+  SELECT * FROM users WHERE email = $1 
+  `, [email]);
+
+  if(result.rows.length > 0) {
+    return res.sendStatus(409);
   }
 
   try {
@@ -36,7 +43,7 @@ app.post("/register", async (req, res) => {
         VALUES ($1, $2, $3)`,
       [name, email, passwordHash]
     );
-    res.sendStatus(200);
+    res.sendStatus(201);
   } catch (error) {
     res.sendStatus(500);
     console.log(error);
@@ -111,31 +118,19 @@ app.get("/records", async (req, res) => {
 
   if (!token) return res.sendStatus(401);
 
-  /*try {
+  try {
     const result = await connection.query(
       `
-        SELECT * FROM sessions
-        JOIN users
-        ON sessions."userId" = users.id
-        WHERE sessions.token = $1
-      `,
-      [token]
-    );
-
-    const userToken = result.rows[0];
-    res.send(userToken).status(200);*/
-    try {
-      const result = await connection.query(`
       SELECT transactions.*, sessions.token 
       FROM transactions 
       JOIN sessions 
       ON transactions."userId" = sessions."userId" 
       WHERE token = $1;
-      `,[token]);
-      console.log(result.rows); //apagar
-      res.send(result.rows).status(200);
-    }
-   catch (error) {
+      `,
+      [token]
+    );
+    res.send(result.rows).status(200);
+  } catch (error) {
     console.log(error);
     return res.sendStatus(500);
   }
