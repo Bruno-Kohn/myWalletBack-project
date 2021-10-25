@@ -129,7 +129,7 @@ app.get("/records", async (req, res) => {
       SELECT transactions.*, sessions.token 
       FROM transactions 
       JOIN sessions 
-      ON transactions."userId" = sessions.id 
+      ON transactions."userId" = sessions."userId" 
       WHERE token = $1;
       `,[token]);
       console.log(result.rows); //apagar
@@ -165,7 +165,7 @@ app.post("/income", async (req, res) => {
       [token]
     );
 
-    const userId = user.rows[0].id;
+    const userId = user.rows[0].userId;
     const date = dayjs().format("YYYY/MM/DD");
 
     await connection.query(
@@ -205,7 +205,7 @@ app.post("/expense", async (req, res) => {
       [token]
     );
 
-    const userId = user.rows[0].id;
+    const userId = user.rows[0].userId;
     const date = dayjs().format("YYYY/MM/DD");
 
     await connection.query(
