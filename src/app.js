@@ -27,11 +27,14 @@ app.post("/register", async (req, res) => {
     return res.sendStatus(400);
   }
 
-  const result = await connection.query(`  
+  const result = await connection.query(
+    `  
   SELECT * FROM users WHERE email = $1 
-  `, [email]);
+  `,
+    [email]
+  );
 
-  if(result.rows.length > 0) {
+  if (result.rows.length > 0) {
     return res.sendStatus(409);
   }
 
