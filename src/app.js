@@ -1,18 +1,18 @@
-import express from "express";
-import cors from "cors";
-import bcrypt from "bcrypt";
-import { v4 as uuid } from "uuid";
-import Joi from "joi";
-import dayjs from "dayjs";
-import connection from "../database/database.js";
+import express from 'express';
+import cors from 'cors';
+import bcrypt from 'bcrypt';
+import { v4 as uuid } from 'uuid';
+import Joi from 'joi';
+import dayjs from 'dayjs';
+import connection from '../database/database.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-//-------------------- Register / Sign-up --------------------
+// -------------------- Register / Sign-up --------------------
 
-app.post("/register", async (req, res) => {
+app.post('/register', async (req, res) => {
   const schema = Joi.object({
     name: Joi.string().min(3).max(30).required(),
     email: Joi.string().email().required(),
@@ -46,19 +46,19 @@ app.post("/register", async (req, res) => {
         VALUES ($1, $2, $3)`,
       [name, email, passwordHash]
     );
-    res.sendStatus(201);
+    return res.sendStatus(201);
   } catch (error) {
-    res.sendStatus(500);
+    return res.sendStatus(500);
     console.log(error);
   }
 });
 
-//-------------------- Login / Sign-in --------------------
+// -------------------- Login / Sign-in --------------------
 
-app.post("/", async (req, res) => {
+app.post('/', async (req, res) => {
   const schema = Joi.object({
     email: Joi.string()
-      .email({ minDomainSegments: 2, tlds: { allow: ["com", "net"] } })
+      .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
       .required(),
     password: Joi.string().min(5).required(),
   });
@@ -103,21 +103,20 @@ app.post("/", async (req, res) => {
         `,
         [user.id, token]
       );
-      res.send({ token, name: user.name }).status(200);
-    } else {
-      return res.sendStatus(401);
+      return res.send({ token, name: user.name }).status(200);
     }
+    return res.sendStatus(401);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
   }
 });
 
-//-------------------- Get Records --------------------
+// -------------------- Get Records --------------------
 
-app.get("/records", async (req, res) => {
-  const authorization = req.headers.authorization;
-  const token = authorization?.replace("Bearer ", "");
+app.get('/records', async (req, res) => {
+  const { authorization } = req.headers.authorization;
+  const token = authorization?.replace('Bearer ', '');
 
   if (!token) return res.sendStatus(401);
 
@@ -132,18 +131,18 @@ app.get("/records", async (req, res) => {
       `,
       [token]
     );
-    res.send(result.rows).status(200);
+    return res.send(result.rows).status(200);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
   }
 });
 
-//-------------------- Post Income --------------------
+// -------------------- Post Income --------------------
 
-app.post("/income", async (req, res) => {
-  const authorization = req.headers.authorization;
-  const token = authorization?.replace("Bearer ", "");
+app.post('/income', async (req, res) => {
+  const { authorization } = req.headers.authorization;
+  const token = authorization?.replace('Bearer ', '');
 
   if (!token) return res.sendStatus(401);
 
@@ -163,8 +162,8 @@ app.post("/income", async (req, res) => {
       [token]
     );
 
-    const userId = user.rows[0].userId;
-    const date = dayjs().format("YYYY/MM/DD");
+    const { userId } = user.rows[0].userId;
+    const date = dayjs().format('YYYY/MM/DD');
 
     await connection.query(
       `INSERT INTO transactions      
@@ -172,18 +171,18 @@ app.post("/income", async (req, res) => {
         VALUES ($1, $2, $3, $4)`,
       [userId, incomeValue, incomeDescription, date]
     );
-    res.sendStatus(201);
+    return res.sendStatus(201);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
   }
 });
 
-//-------------------- Post Expense --------------------
+// -------------------- Post Expense --------------------
 
-app.post("/expense", async (req, res) => {
-  const authorization = req.headers.authorization;
-  const token = authorization?.replace("Bearer ", "");
+app.post('/expense', async (req, res) => {
+  const { authorization } = req.headers.authorization;
+  const token = authorization?.replace('Bearer ', '');
 
   if (!token) return res.sendStatus(401);
 
@@ -203,8 +202,8 @@ app.post("/expense", async (req, res) => {
       [token]
     );
 
-    const userId = user.rows[0].userId;
-    const date = dayjs().format("YYYY/MM/DD");
+    const { userId } = user.rows[0].userId;
+    const date = dayjs().format('YYYY/MM/DD');
 
     await connection.query(
       `INSERT INTO transactions      
@@ -212,7 +211,7 @@ app.post("/expense", async (req, res) => {
         VALUES ($1, $2, $3, $4)`,
       [userId, -expenseValue, expenseDescription, date]
     );
-    res.sendStatus(201);
+    return res.sendStatus(201);
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
